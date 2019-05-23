@@ -1,9 +1,6 @@
 import numpy as np
 import pandas as pd
 import pickle
-from collections import defaultdict
-import re
-import sys
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
@@ -18,7 +15,6 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from plot_utils import plot_confusion_matrix, plot_keywords
 
 MAX_SEQUENCE_LENGTH = 1000
-MAX_NB_WORDS = 20000
 EMBEDDING_DIM = 100
 VALIDATION_SPLIT = 0.2
 
@@ -233,7 +229,7 @@ class Cnn:
         index = np.argmax(result)
         probability = result[0][index]
 
-        print("Predicted class %s with probability %.3f" % (self.all_classes[index], probability))
+        # print("Predicted class %s with probability %.3f" % (self.all_classes[index], probability))
 
         return [self.all_classes[index], probability]
 
@@ -293,11 +289,11 @@ if __name__ == "__main__":
     new_model_file_name = 'model_cnn.hdf5.test'
 
     # train model
-    cnn.create_cnn_model(new_model_file_name)
+    # cnn.create_cnn_model(new_model_file_name)
 
     # path to test file
-    test_file = 'input/bbc-text.csv'
+    test_file = 'input/news_category_same_categories.csv'
 
     # test model
-    use_best_model = False
+    use_best_model = True
     test(test_file, new_model_file_name, use_best_model)
