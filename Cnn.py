@@ -208,7 +208,7 @@ class Cnn:
 
         self.train_cnn('calculated_models/' + model_file_name)
 
-    def predict(self, text, file='model_cnn.hdf5.best4'):
+    def predict(self, text, file='model_cnn.hdf5.best5'):
         """Open cnn model and make prediction"""
         self.model = self.model if self.model else load_model('calculated_models/' + file)
 
@@ -289,11 +289,11 @@ if __name__ == "__main__":
     new_model_file_name = 'model_cnn.hdf5.test'
 
     # path to test file
-    test_file = 'input/news_category_same_categories_as_bbc.csv'
+    test_file = 'input/bbc-text.csv'
 
     # train model
-    cnn.create_cnn_model(new_model_file_name, test_file)
+    # cnn.create_cnn_model(new_model_file_name, test_file)
 
     # test model
-    use_best_model = False
+    use_best_model = True
     test(test_file, new_model_file_name, use_best_model)
