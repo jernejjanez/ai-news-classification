@@ -194,12 +194,12 @@ class Cnn:
                             batch_size=16,
                             callbacks=[cp])
 
-    def create_cnn_model(self, model_file_name):
+    def create_cnn_model(self, model_file_name, input_file_name):
         """
         This function creates cnn model and saves it to file
         default: calculated_models/model_cnn.hdf5.best4
         """
-        self.read_data()
+        self.read_data(input_file_name)
         self.prepare_data()
 
         self.create_embeddings_index()
@@ -288,12 +288,12 @@ if __name__ == "__main__":
     # file name to which save cnn model
     new_model_file_name = 'model_cnn.hdf5.test'
 
-    # train model
-    # cnn.create_cnn_model(new_model_file_name)
-
     # path to test file
-    test_file = 'input/news_category_same_categories.csv'
+    test_file = 'input/news_category_same_categories_as_bbc.csv'
+
+    # train model
+    cnn.create_cnn_model(new_model_file_name, test_file)
 
     # test model
-    use_best_model = True
+    use_best_model = False
     test(test_file, new_model_file_name, use_best_model)
