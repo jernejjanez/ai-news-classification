@@ -13,6 +13,8 @@ from keras.callbacks import ModelCheckpoint
 from nltk.tokenize import RegexpTokenizer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
 from plot_utils import plot_confusion_matrix, plot_keywords
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 MAX_SEQUENCE_LENGTH = 1000
 EMBEDDING_DIM = 100
@@ -237,18 +239,20 @@ class Cnn:
         cm = confusion_matrix(y_test, y_predicted)
         plot_confusion_matrix(cm, classes=self.all_classes, normalize=False)
 
-    # def plot_keywords(self):
-    #     if not self.keywords:
-    #         keywords = self.get_keywords(n=10)
-    #     else:
-    #         keywords = self.keywords
-    #     for genre in keywords:
-    #         top = keywords[genre]['top']
-    #         bottom = keywords[genre]['bottom']
-    #         plot_keywords(top, bottom, self.classes_[genre])
+    def plot_keywords(self, input_file):
+        df = pd.read_csv(input_file)
+        for i in range(len(self.all_classes)):
+            text = " ".join(txt for txt in df.text[df.category == self.all_classes[i]])
+            print(self.all_classes[i].capitalize())
+            print("There are {} words in the combination of all review.".format(len(text)))
+            wordcloud = WordCloud(max_words=100, background_color="white", height=400, width=800).generate(text)
+            plt.imshow(wordcloud, interpolation='bilinear')
+            plt.axis("off")
+            plt.show()
+            wordcloud.to_file("results/wordcloud_cnn_min20_" + self.all_classes[i] + ".png")
 
 
-def test(test_file_name, model_file_name, use_best=False):
+def test(test_file_name, model_file_name, best_model, use_best=False):
     """test precalculated model"""
     true_scores = []
     pred_scores = []
@@ -267,7 +271,7 @@ def test(test_file_name, model_file_name, use_best=False):
 
         # make prediction
         if use_best:
-            [pred, _] = _cnn.predict(d)
+            [pred, _] = _cnn.predict(d, best_model)
         else:
             [pred, _] = _cnn.predict(d, model_file_name)
 
@@ -278,7 +282,8 @@ def test(test_file_name, model_file_name, use_best=False):
     print("\t F1 (micro): %f" % f1_score(true_scores, pred_scores, average='micro'))
     print("\t F1 (weighted): %f" % f1_score(true_scores, pred_scores, average='weighted'))
 
-    cnn.plot_confusion_matrix(true_scores, pred_scores)
+    _cnn.plot_confusion_matrix(true_scores, pred_scores)
+    _cnn.plot_keywords(test_file_name)
 
 
 if __name__ == "__main__":
@@ -286,14 +291,15 @@ if __name__ == "__main__":
     cnn = Cnn()
 
     # file name to which save cnn model
-    new_model_file_name = 'model_cnn.hdf5.test'
+    new_model_file_name = 'model_cnn.hdf5.5_clean'
 
     # path to test file
-    test_file = 'input/bbc-text.csv'
+    test_file = 'input/5_categories_cleaned.csv'
 
     # train model
-    # cnn.create_cnn_model(new_model_file_name, test_file)
+    cnn.create_cnn_model(new_model_file_name, test_file)
 
     # test model
-    use_best_model = True
-    test(test_file, new_model_file_name, use_best_model)
+    use_best_model = False
+    best_model = 'model_cnn.hdf5.test'
+    test(test_file, new_model_file_name, best_model, use_best_model)
