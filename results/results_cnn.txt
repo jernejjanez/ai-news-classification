@@ -111,3 +111,6 @@ BBC Clean:
 	F1 (macro): 0.569629
 	F1 (micro): 0.693538
 	F1 (weighted): 0.687570
+
+5 categories cleaned:
+

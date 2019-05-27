@@ -212,7 +212,7 @@ class Cnn:
 
     def predict(self, text, file='model_cnn.hdf5.best5'):
         """Open cnn model and make prediction"""
-        self.model = self.model if self.model else load_model('calculated_models/' + file)
+        self.model = load_model('calculated_models/' + file)
 
         # load embedding index
         if self.embeddings_index is None:
@@ -249,7 +249,7 @@ class Cnn:
             plt.imshow(wordcloud, interpolation='bilinear')
             plt.axis("off")
             plt.show()
-            wordcloud.to_file("results/wordcloud_cnn_min20_" + self.all_classes[i] + ".png")
+            wordcloud.to_file("results/wordcloud/wordcloud_cnn_5_clean_" + self.all_classes[i] + ".png")
 
 
 def test(test_file_name, model_file_name, best_model, use_best=False):
@@ -297,9 +297,9 @@ if __name__ == "__main__":
     test_file = 'input/5_categories_cleaned.csv'
 
     # train model
-    cnn.create_cnn_model(new_model_file_name, test_file)
+    # cnn.create_cnn_model(new_model_file_name, test_file)
 
     # test model
-    use_best_model = False
-    best_model = 'model_cnn.hdf5.test'
+    use_best_model = True
+    best_model = 'model_cnn.hdf5.5_clean'
     test(test_file, new_model_file_name, best_model, use_best_model)
