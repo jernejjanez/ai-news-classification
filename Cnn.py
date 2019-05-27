@@ -24,6 +24,7 @@ class_to_predict = 'category'
 
 
 def clean_sentence(sentence):
+    print(sentence)
     tokenizer = RegexpTokenizer(r'\w+')
     sentence = tokenizer.tokenize(sentence)
     return [w.lower() for w in sentence]
@@ -212,7 +213,7 @@ class Cnn:
 
     def predict(self, text, file='model_cnn.hdf5.best5'):
         """Open cnn model and make prediction"""
-        self.model = load_model('calculated_models/' + file)
+        self.model = self.model if self.model else load_model('calculated_models/' + file)
 
         # load embedding index
         if self.embeddings_index is None:
@@ -278,6 +279,8 @@ def test(test_file_name, model_file_name, best_model, use_best=False):
         pred_s = pred
         pred_scores.append(pred_s)
 
+        print("{}/{}".format(index + 1, len(df)))
+
     print("\t F1 (macro): %f" % f1_score(true_scores, pred_scores, average='macro'))
     print("\t F1 (micro): %f" % f1_score(true_scores, pred_scores, average='micro'))
     print("\t F1 (weighted): %f" % f1_score(true_scores, pred_scores, average='weighted'))
@@ -291,7 +294,7 @@ if __name__ == "__main__":
     cnn = Cnn()
 
     # file name to which save cnn model
-    new_model_file_name = 'model_cnn.hdf5.5_clean'
+    new_model_file_name = 'model_cnn.hdf5.test'
 
     # path to test file
     test_file = 'input/5_categories_cleaned.csv'
