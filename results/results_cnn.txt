@@ -114,3 +114,13 @@ BBC Clean:
 
 5 categories cleaned:
 
+
+5 categories cleaned using bbc_clean model:
+	F1 (macro): 0.300364
+	F1 (micro): 0.443238
+	F1 (weighted): 0.447946
+
+BBC Clean using 5 categories cleaned model:
+	F1 (macro): 0.341875
+	F1 (micro): 0.385618
+	F1 (weighted): 0.345370
