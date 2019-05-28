@@ -12,9 +12,11 @@ from keras.models import Model
 from keras.callbacks import ModelCheckpoint
 from nltk.tokenize import RegexpTokenizer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
+from sklearn import metrics
 from plot_utils import plot_confusion_matrix, plot_keywords
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 MAX_SEQUENCE_LENGTH = 1000
 EMBEDDING_DIM = 100
@@ -35,7 +37,7 @@ class Cnn:
         self.labels = None
         self.text = None
         self.word_index = None
-        self.all_classes = ["business", "entertainment", "politics", "sport", "tech"]
+        self.all_classes = None
 
         # train and test data
         self.x_train = None
@@ -67,10 +69,10 @@ class Cnn:
     def prepare_data(self):
         """Prepares data for processing"""
         # get list of all classes
-        all_classes = sorted(set(self.df[class_to_predict]))
+        self.all_classes = sorted(set(self.df[class_to_predict]))
 
         # convert to dict to map them
-        mapped_classes = dict((note, number) for number, note in enumerate(all_classes))
+        mapped_classes = dict((note, number) for number, note in enumerate(self.all_classes))
 
         # save mapped classes to data frame
         self.df[class_to_predict] = self.df[class_to_predict].apply(lambda i: mapped_classes[i])
@@ -178,7 +180,7 @@ class Cnn:
         l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
         l_flat = Flatten()(l_pool3)
         l_dense = Dense(128, activation='relu')(l_flat)
-        preds = Dense(5, activation='softmax')(l_dense)
+        preds = Dense(31, activation='softmax')(l_dense)
 
         model = Model(sequence_input, preds)
         model.compile(loss='categorical_crossentropy',
@@ -235,9 +237,26 @@ class Cnn:
 
         return [self.all_classes[index], probability]
 
-    def plot_confusion_matrix(self, y_test, y_predicted):
-        cm = confusion_matrix(y_test, y_predicted)
-        plot_confusion_matrix(cm, classes=self.all_classes, normalize=False)
+    def _cm(self, df, y_test, y_pred):
+        # plot the confusion matrix
+        categories = df['category'].drop_duplicates().tolist()
+        conf_mat = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots(figsize=(20, 20))
+        # sns.set(font_scale=1)
+        sns.heatmap(conf_mat, annot=True, fmt='d', xticklabels=categories, yticklabels=categories, cmap="Blues")
+        plt.ylabel('Actual')
+        plt.xlabel('Predicted')
+        plt.show()
+
+        # print metrics for the model
+        print(metrics.classification_report(y_test, y_pred, target_names=df['category'].unique()))
+
+    def plot_confusion_matrix(self, df, y_test, y_predicted):
+        if len(self.all_classes) > 20:
+            self._cm(df, y_test, y_predicted)
+        else:
+            cm = confusion_matrix(y_test, y_predicted)
+            plot_confusion_matrix(cm, classes=self.all_classes, normalize=False)
 
     def plot_keywords(self, input_file):
         df = pd.read_csv(input_file)
@@ -249,7 +268,7 @@ class Cnn:
             plt.imshow(wordcloud, interpolation='bilinear')
             plt.axis("off")
             plt.show()
-            wordcloud.to_file("results/wordcloud/wordcloud_cnn_20_clean_" + self.all_classes[i] + ".png")
+            # wordcloud.to_file("results/wordcloud/wordcloud_cnn_20_clean_" + self.all_classes[i] + ".png")
 
 
 def test(test_file_name, model_file_name, best_model, use_best=False):
@@ -262,6 +281,8 @@ def test(test_file_name, model_file_name, best_model, use_best=False):
 
     # read test data set
     df = pd.read_csv(test_file_name, encoding='utf8')
+    _cnn.all_classes = sorted(set(df[class_to_predict]))
+    print(_cnn.all_classes)
     for index, row in df.iterrows():
         d = row['text']
 
@@ -282,8 +303,8 @@ def test(test_file_name, model_file_name, best_model, use_best=False):
     print("\t F1 (micro): %f" % f1_score(true_scores, pred_scores, average='micro'))
     print("\t F1 (weighted): %f" % f1_score(true_scores, pred_scores, average='weighted'))
 
-    _cnn.plot_confusion_matrix(true_scores, pred_scores)
-    _cnn.plot_keywords(test_file_name)
+    _cnn.plot_confusion_matrix(df, true_scores, pred_scores)
+    # _cnn.plot_keywords(test_file_name)
 
 
 if __name__ == "__main__":
@@ -301,5 +322,5 @@ if __name__ == "__main__":
 
     # test model
     use_best_model = False
-    best_model = 'model_cnn.hdf5.5_clean'
+    best_model = 'model_cnn.hdf5.test'
     test(test_file, new_model_file_name, best_model, use_best_model)
